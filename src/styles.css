@@ -1,0 +1,2093 @@
+/*
+ * Measured from a 1536 × 1200 reference frame. Type is Inter at its Display optical size
+ * (opsz 32); body copy is 14/21.
+ */
+:root {
+  --page: #f6f6f6;
+  --surface: #ffffff;
+  --ink: #000000;
+  --muted: #737373;
+  --line: #ebebeb;
+  --pill: #e7e7e7;
+  --brand: #eb5b24;
+  --brand-tint: #fdf1eb;
+  --navy: #062068;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  font-variation-settings: 'opsz' 32;
+  font-size: 14px;
+  line-height: 21px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+p,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+  font-variation-settings: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+svg {
+  display: block;
+  flex: none;
+}
+
+/* ───────────────────────── Shell ───────────────────────── */
+
+.app {
+  --sidebar-w: 216px;
+  --rail-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  transition: grid-template-columns 320ms var(--rail-ease);
+  grid-template-rows: 64px minmax(0, 1fr);
+  height: 100vh;
+  min-height: 560px;
+}
+
+.sidebar {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  position: relative;
+  padding: 0 8px;
+  min-height: 0;
+  overflow: hidden; /* clips labels as the rail narrows */
+}
+
+.logo {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  display: block;
+}
+
+.logo img {
+  display: block;
+  width: 92.5px;
+  height: 24px;
+}
+
+.nav {
+  padding-top: 64px;
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  margin-bottom: 2px;
+  padding: 0 12px 0 12px;
+  border-radius: 16px;
+  color: var(--muted);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.nav-item:hover {
+  background: #eeeeee;
+  color: var(--ink);
+}
+
+.nav-item.is-active {
+  background: var(--pill);
+  color: var(--ink);
+}
+
+.nav-item.is-active .nav-label {
+  font-weight: 600;
+}
+
+.nav-icon[width="19"] {
+  margin: 0 0.5px;
+}
+
+.nav-label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Expandable nav items (Travel, Expense, Cards) ── */
+
+/* the 2px gap lives on the wrapper so it still collapses into the next section's margin */
+.nav-tree {
+  margin-bottom: 2px;
+}
+
+.nav-parent {
+  width: 100%;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.nav-parent:focus-visible,
+.nav-subitem:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: -2px;
+}
+
+/* faint chevron: only on hover/focus and while open, so the resting sidebar is unchanged */
+.nav-chevron {
+  margin-right: -3px;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 160ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-parent:hover .nav-chevron,
+.nav-parent:focus-visible .nav-chevron,
+.nav-tree.is-open .nav-chevron {
+  opacity: 1;
+}
+
+.nav-tree.is-open .nav-chevron {
+  transform: rotate(180deg);
+}
+
+.nav-tree.is-open > .nav-parent {
+  color: var(--ink);
+}
+
+/* Height animates via grid rows 0fr → 1fr, so the list opens to its natural height. */
+.nav-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-tree.is-open > .nav-sub {
+  grid-template-rows: 1fr;
+}
+
+.nav-sub-inner {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* a thin guide down from the parent's icon ties the sub-items to it */
+.nav-sub-inner::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 2px;
+  bottom: 12px;
+  width: 1px;
+  background: #e2e2e2;
+}
+
+/* text only, lined up under the parent's label */
+.nav-subitem {
+  display: flex;
+  align-items: center;
+  height: 40px; /* same as the main items */
+  margin: 0 0 2px 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 200ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 120ms ease, color 120ms ease;
+}
+
+.nav-subitem:first-child {
+  margin-top: 2px;
+}
+
+.nav-subitem:last-child {
+  margin-bottom: 8px;
+}
+
+.nav-tree.is-open .nav-subitem {
+  opacity: 1;
+  transform: none;
+}
+
+.nav-tree.is-open .nav-subitem:nth-child(2) {
+  transition-delay: 40ms;
+}
+
+.nav-tree.is-open .nav-subitem:nth-child(3) {
+  transition-delay: 80ms;
+}
+
+.nav-tree.is-open .nav-subitem:hover {
+  background: #eeeeee;
+  color: var(--ink);
+  transition-delay: 0ms;
+}
+
+.nav-subitem.is-current {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-sub,
+  .nav-subitem,
+  .nav-chevron {
+    transition: none;
+  }
+}
+
+.nav-section {
+  position: relative;
+  /* collapses with the 2px margin under the item above */
+  margin-top: 20px;
+  white-space: nowrap;
+  transition: margin-top 320ms var(--rail-ease), height 320ms var(--rail-ease);
+  height: 26px;
+  padding: 0 12px;
+  font-size: 12.6px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20.5px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 0.85px #ffe6d8;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.profile {
+  position: absolute;
+  left: 20px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #00000012;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--brand);
+}
+
+.profile-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.profile-role {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+/* ───────────────────────── Top bar ───────────────────────── */
+
+.topbar {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 8px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 260px;
+  height: 40px;
+  padding: 0 16px 0 15px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.025), 0 2px 22px rgba(0, 0, 0, 0.045);
+  color: var(--muted);
+  cursor: text;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 4.5px;
+  border-radius: 4px;
+  background: #ececec;
+  color: #7a7a7a;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* right side of the top bar: "Need help?" then the bell, which keeps its spot 16px from the edge */
+.topbar-actions {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  z-index: 30; /* the help popover opens over the panel */
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.help-link {
+  color: var(--ink);
+  white-space: nowrap;
+  transition: color 120ms ease;
+}
+
+.help-link:hover {
+  color: var(--muted);
+}
+
+.help-link:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Help popover ── */
+
+.help {
+  position: relative;
+}
+
+/* right edge lines up with the bell's (18px gap + 40px bell to the right of the trigger) */
+.help-pop {
+  position: absolute;
+  top: calc(100% + 19px);
+  right: -58px;
+  width: min(340px, calc(100vw - 32px));
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 20px 44px -16px rgba(17, 24, 39, 0.18), 0 4px 12px rgba(17, 24, 39, 0.05);
+  transform-origin: calc(100% - 92px) top;
+  animation: help-pop-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* transform only: an opacity fade here left the card faintly see-through over the banner in
+   Chrome after it finished */
+@keyframes help-pop-in {
+  from {
+    transform: translateY(-6px) scale(0.96);
+  }
+}
+
+.help-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.help-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 10px;
+  border-radius: 14px;
+  color: var(--muted);
+  line-height: 20px;
+  transition: background-color 120ms ease;
+}
+
+.help-row:hover {
+  background: #f6f6f6;
+}
+
+.help-row:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: -2px;
+}
+
+/* bare icon, same Material Symbols Rounded outline style as the sidebar */
+.help-row-icon {
+  display: grid;
+  place-items: center;
+  color: #5f5f5f;
+  flex: none;
+}
+
+.help-row-text b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.help-row-text {
+  white-space: nowrap; /* each row reads as one line */
+}
+
+.help-row-text .help-faq {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .help-pop {
+    animation: none;
+  }
+}
+
+.bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e6e6e6;
+  border-radius: 50%;
+  color: var(--ink);
+}
+
+/* Bell ring (once per hover/focus): the bell swings from its top knob in a damped arc; the
+   clapper hangs from the same point, lags a beat and swings wider; the badge gives a small pop. */
+.bell svg {
+  overflow: visible;
+}
+
+.bell-body,
+.bell-clapper {
+  transform-box: view-box;
+  transform-origin: 50% 10.4%; /* the knob at the top of the bell (y = -860 in a -960..0 box) */
+}
+
+.bell[data-playing] .bell-body {
+  animation: bell-swing 900ms cubic-bezier(0.36, 0, 0.3, 1);
+}
+
+.bell[data-playing] .bell-clapper {
+  animation: bell-clapper 900ms cubic-bezier(0.36, 0, 0.3, 1);
+}
+
+.bell[data-playing] .badge {
+  animation: bell-badge 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 60ms;
+}
+
+@keyframes bell-swing {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  10% {
+    transform: rotate(16deg);
+  }
+  25% {
+    transform: rotate(-13deg);
+  }
+  40% {
+    transform: rotate(9deg);
+  }
+  55% {
+    transform: rotate(-6deg);
+  }
+  70% {
+    transform: rotate(3deg);
+  }
+  85% {
+    transform: rotate(-1deg);
+  }
+}
+
+@keyframes bell-clapper {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(22deg);
+  }
+  30% {
+    transform: rotate(-18deg);
+  }
+  45% {
+    transform: rotate(12deg);
+  }
+  60% {
+    transform: rotate(-7deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+  90% {
+    transform: rotate(-1deg);
+  }
+}
+
+@keyframes bell-badge {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bell[data-playing] :is(.bell-body, .bell-clapper, .badge) {
+    animation: none;
+  }
+}
+
+.bell .badge {
+  position: absolute;
+  left: 22.5px;
+  top: -3px;
+}
+
+/* ───────────────────────── Panel ───────────────────────── */
+
+.panel {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+  margin: 0 8px 8px 0;
+  padding: 0 32px;
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: auto;
+}
+
+.content {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.hello {
+  font-size: 38px;
+  line-height: 46px;
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+
+.hello-sub {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.14px;
+  color: var(--muted);
+}
+
+/* ───────────────────────── Iris banner ───────────────────────── */
+
+/* The banner is a size container: sizes inside it scale with its width (cqw), so it keeps the
+   side-by-side layout from full width (1152px, where every value equals the design) down to
+   phone widths. */
+.iris {
+  container-type: inline-size;
+  margin-top: 37px;
+}
+
+.iris-grid {
+  --tab-w: clamp(150px, 32.64cqw, 376px);
+  display: grid;
+  /* the panel tucks 56px under the tab and starts 22px below its top */
+  grid-template-columns: calc(var(--tab-w) - 56px) 56px minmax(0, 1fr);
+  grid-template-rows: 22px auto;
+}
+
+.iris-panel {
+  grid-column: 2 / 4;
+  grid-row: 2;
+  min-height: 108px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  /* left: 26.5px of the overlap sits under the tab, then the gap to the copy */
+  padding: clamp(14px, 1.3cqw, 16px) clamp(14px, 2.78cqw, 32px) clamp(14px, 1.3cqw, 16px)
+    calc(26.5px + clamp(12px, 2.822cqw, 32.5px));
+  border-radius: 0 28px 28px 0;
+  background: linear-gradient(90deg, #e4eef6 0%, #e0e9f3 40%, #d9e0ec 78%, #d6dbe9 100%);
+}
+
+.iris-copy {
+  min-width: 0;
+  padding-top: 1.6px;
+}
+
+.iris-title {
+  font-size: clamp(17px, 2.7127cqw, 31.25px);
+  line-height: 1.216;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.iris-name {
+  background: linear-gradient(90deg, #4a86c0 0%, #2c5b9b 38%, #0d307d 66%, #021f74 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.iris-sub {
+  margin-top: 4.8px;
+  font-size: clamp(12.5px, 1.4757cqw, 17px);
+  line-height: 1.4118;
+  font-weight: 480;
+  color: #272c31;
+  text-wrap: pretty;
+}
+
+.iris-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(7px, 1.0157cqw, 11.7px);
+  height: clamp(36px, 3.863cqw, 44.5px);
+  padding: 0 clamp(12px, 1.52cqw, 17.5px) 0 clamp(12px, 1.632cqw, 18.8px);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy);
+  font-size: clamp(12.5px, 1.2153cqw, 14px);
+  font-weight: 700;
+  white-space: nowrap;
+  flex: none;
+}
+
+.iris-cta > span {
+  background: linear-gradient(90deg, #2f5590 0%, #1a3c80 45%, #04216b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Drilldown sparkle: the big star swells and tilts, then settles; the small one blinks out
+   and spins back in a full turn. Both end exactly where they started, gradient included. */
+.iris-cta-sparkle {
+  overflow: visible;
+}
+
+.iris-cta-sparkle path {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.iris-cta[data-playing] .sparkle-big {
+  animation: sparkle-swell 720ms cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+.iris-cta[data-playing] .sparkle-small {
+  animation: sparkle-blink 720ms cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+@keyframes sparkle-swell {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  40% {
+    transform: rotate(28deg) scale(1.25);
+  }
+  70% {
+    transform: rotate(-6deg) scale(0.95);
+  }
+}
+
+@keyframes sparkle-blink {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  22% {
+    transform: rotate(0deg) scale(0);
+  }
+  65% {
+    transform: rotate(270deg) scale(1.5);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-cta[data-playing] .iris-cta-sparkle path {
+    animation: none;
+  }
+}
+
+.iris-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.75px;
+  background: linear-gradient(90deg, #6ea2c8 0%, #2c5a99 50%, #07216e 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.iris-tab {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+  position: relative;
+  z-index: 1;
+  min-height: 130px;
+  /* right padding keeps text clear of the outline's inset right side */
+  padding: clamp(14px, 1.954cqw, 22.5px) 36px clamp(14px, 2.04cqw, 23.5px) clamp(14px, 2.4306cqw, 28px);
+  background: linear-gradient(
+    123deg,
+    #71aed6 0%,
+    #67a1ce 16%,
+    #6097c6 26%,
+    #5688bb 35%,
+    #4a7ab2 48%,
+    #426aa8 61%,
+    #375b9c 74%,
+    #2e4d92 81%,
+    #2a488c 87%,
+    #26428a 100%
+  );
+  /* The gradient is drawn a bit larger than the tab and its position glides back and forth,
+     so the light and deep blues shift slowly under the streaks. */
+  background-size: 125% 150%;
+  background-position: 0% 30%;
+  animation: iris-gradient-drift 14s ease-in-out infinite alternate;
+  color: #fff;
+}
+
+@keyframes iris-gradient-drift {
+  to {
+    background-position: 100% 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-tab {
+    animation: none;
+    background-size: 100% 100%;
+    background-position: 0 0;
+  }
+}
+
+/* Tilted to the streak angle and oversized so the rotation never exposes a corner. */
+.iris-streaks {
+  position: absolute;
+  inset: -220px -160px;
+  transform: rotate(-16deg);
+  mix-blend-mode: soft-light;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* One tile larger than its parent so moving it by exactly one tile loops seamlessly. */
+.iris-streaks-flow {
+  position: absolute;
+  left: 0;
+  top: -200px;
+  width: calc(100% + 600px);
+  height: calc(100% + 200px);
+  background-size: 600px 200px;
+  background-repeat: repeat;
+  will-change: transform;
+  animation: iris-flow 22s linear infinite;
+}
+
+.iris-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: soft-light;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@keyframes iris-flow {
+  to {
+    /* one tile across the streaks (200px) and one tile along them (600px) */
+    transform: translate3d(-600px, 200px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-streaks-flow {
+    animation: none;
+  }
+}
+
+.iris-tab-copy {
+  position: relative;
+}
+
+.iris-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7.6px;
+  font-size: clamp(12px, 1.3455cqw, 15.5px);
+  line-height: 1.2903;
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.iris-kicker svg {
+  margin-left: 1.2px;
+}
+
+.iris-insight {
+  margin-top: clamp(6px, 1.0417cqw, 12px);
+  font-size: clamp(14px, 1.823cqw, 21px);
+  line-height: 1.2381;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+/* ───────────────────────── Quick actions ───────────────────────── */
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.qa-card {
+  position: relative;
+  isolation: isolate; /* keeps the hover fill under the icon and text */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 80px;
+  padding: 0 15px 0 14.25px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  /* the border comes back once the fill has mostly drained away */
+  transition: border-color 320ms ease 260ms;
+}
+
+/* Hover keeps the card's shape, drops the border and fills it light orange (below). */
+.qa-card:hover,
+.qa-card:focus-visible {
+  border-color: transparent;
+  transition: border-color 300ms ease;
+}
+
+/* Hover fill: the icon's light-orange circle grows to fill the whole card, then shrinks back.
+   At rest it is a 40px circle sitting exactly under the icon disc, so it can't be seen. It
+   covers the border area too (inset -1px), so no white ring shows once the border fades. */
+.qa-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  corner-shape: inherit;
+  background: var(--brand-tint);
+  clip-path: circle(20px at 35.25px 50%);
+  transition: clip-path 560ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.qa-card:hover::before,
+.qa-card:focus-visible::before {
+  /* 142% of the box's diagonal/√2 always reaches the far corner, whatever the card width */
+  clip-path: circle(142% at 35.25px 50%);
+  transition: clip-path 860ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.qa-icon {
+  --qa-tint: var(--brand-tint);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--qa-tint);
+  color: var(--brand);
+  flex: none;
+  /* keeps the moving parts inside the disc */
+  overflow: hidden;
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 200ms ease;
+}
+
+/* the icon disc keeps its colour and size on hover, so the fill reads as the disc expanding */
+
+.qa-card:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: 2px;
+}
+
+/* ── Quick action icons ──
+   While a card is hovered or focused its icon grows a little and acts out the card. Motion is
+   built like physical motion: anticipation (a small dip before lifting), a soft spring with a
+   touch of overshoot, and follow-through (parts move a beat apart). Leaving settles everything
+   back smoothly with no bounce. */
+
+.qa-card {
+  /* soft spring, ~2% overshoot */
+  --qa-spring: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%,
+      0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1);
+  /* dips back first (anticipation), then springs past the pose and settles */
+  --qa-liftoff: linear(0, -0.035 6%, -0.07 14%, -0.06 20%, 0.05 27%, 0.32 35%, 0.66 44%, 0.9 53%,
+      1.04 62%, 1.07 70%, 1.04 80%, 1.01 90%, 1);
+  --qa-settle: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.qa-glyph {
+  overflow: visible;
+  transition: transform 420ms var(--qa-settle);
+}
+
+.qa-glyph path,
+.qa-glyph rect,
+.qa-glyph g {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 420ms var(--qa-settle);
+}
+
+/* the whole icon grows a little */
+.qa-card:is(:hover, :focus-visible) .qa-glyph {
+  transform: scale(1.15);
+  transition: transform 560ms var(--qa-spring);
+}
+
+/* Plan a trip: the plane leans back, lifts off nose-up, then floats; the runway falls away
+   behind it a beat later. */
+.qa-card:is(:hover, :focus-visible) .qa-plane {
+  transform: translate(12%, -22%) rotate(-10deg);
+  transition: transform 780ms var(--qa-liftoff);
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-plane-air {
+  animation: qa-float 2.6s ease-in-out 780ms infinite;
+}
+
+@keyframes qa-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-9%) rotate(-2deg);
+  }
+}
+
+.qa-runway {
+  transform-origin: left center;
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-runway {
+  transform: scaleX(0.7);
+  opacity: 0.85;
+  transition: transform 620ms var(--qa-spring) 120ms, opacity 400ms ease 120ms;
+}
+
+/* Create expense: the page lifts and tilts, then its short first line writes itself out to
+   the full width of the lines below. */
+.qa-doc-line {
+  fill: var(--qa-tint);
+  transform-origin: left center;
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-doc {
+  transform: translateY(-6%) rotate(-5deg);
+  transition: transform 600ms var(--qa-spring);
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-doc-line:nth-of-type(1) {
+  transform: scaleX(1.4565); /* 276 → 402 units */
+  transition: transform 460ms cubic-bezier(0.45, 0, 0.2, 1) 220ms; /* steady, like a pen stroke */
+}
+
+/* Issue card: the card slides up out of its slot, then the plus pops (no turn: mid-turn it
+   would read as an ×). */
+.qa-card:is(:hover, :focus-visible) .qa-card-body {
+  transform: translate(-6%, -9%) rotate(-5deg);
+  transition: transform 620ms var(--qa-spring);
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-card-plus {
+  transform: translate(8%, 8%) scale(1.3);
+  transition: transform 640ms var(--qa-liftoff) 110ms;
+}
+
+/* Add user: a small dip, then the head lifts and the shoulders square up just after. */
+.qa-user-body {
+  transform-origin: center bottom;
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-user-head {
+  transform: translateY(-16%);
+  transition: transform 680ms var(--qa-liftoff);
+}
+
+.qa-card:is(:hover, :focus-visible) .qa-user-body {
+  transform: scale(1.09, 1.04);
+  transition: transform 600ms var(--qa-spring) 90ms;
+}
+
+.qa-runway,
+.qa-glyph :is(path, rect, g) {
+  /* opacity settles back alongside transform */
+  transition-property: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-icon {
+    transition: background-color 200ms ease;
+  }
+  .qa-card::before {
+    transition: none;
+  }
+  .qa-glyph,
+  .qa-glyph :is(path, rect, g),
+  .qa-card:is(:hover, :focus-visible) .qa-glyph,
+  .qa-card:is(:hover, :focus-visible) .qa-glyph :is(path, rect, g) {
+    transition: none;
+  }
+  .qa-card:is(:hover, :focus-visible) .qa-plane-air {
+    animation: none;
+  }
+}
+
+.qa-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 22px;
+}
+
+.qa-title {
+  font-weight: 600;
+}
+
+.qa-sub {
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ───────────────────────── Cards ───────────────────────── */
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+}
+
+.eyebrow {
+  position: relative;
+  top: 1.5px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.sep {
+  color: var(--muted);
+}
+
+.eyebrow .sep {
+  margin: 0 2.1px;
+  font-weight: 400;
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 61.5px;
+  margin-top: 40px;
+  padding: 23.5px 24.75px 25.5px 23px;
+}
+
+.todo {
+  position: relative;
+}
+
+.todo::before {
+  content: '';
+  position: absolute;
+  top: 0.5px;
+  bottom: 0;
+  left: -31px;
+  width: 1px;
+  background: #eeeeee;
+}
+
+/* Company spend */
+
+.tabs {
+  position: relative;
+  isolation: isolate; /* the sliding pill sits behind the labels */
+  display: flex;
+}
+
+/* One pill glides to the selected tab and resizes to fit it. */
+.tab-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: var(--pill-w, 0px);
+  height: 32px;
+  border-radius: 16px;
+  background: #f0f0f0;
+  transform: translateX(var(--pill-x, 0px));
+  opacity: 0;
+}
+
+.tab-indicator[data-placed] {
+  opacity: 1;
+}
+
+.tab-indicator[data-live] {
+  transition: transform 360ms cubic-bezier(0.32, 0.72, 0, 1), width 360ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-indicator[data-live] {
+    transition: none;
+  }
+}
+
+.tab {
+  height: 32px;
+  padding: 1.5px 12px 0;
+  border-radius: 16px;
+  color: var(--muted);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: 1px;
+}
+
+.tab[aria-selected='true'] {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.amount {
+  margin-top: 17px;
+  font-size: 54px;
+  line-height: 64px;
+  font-weight: 700;
+}
+
+.trend {
+  display: flex;
+  align-items: center;
+  margin-top: 5.5px;
+}
+
+.trend-icon {
+  margin-right: 4px;
+}
+
+.trend-pct {
+  font-weight: 700;
+  margin-right: 6.5px;
+}
+
+.trend-label {
+  position: relative;
+  top: -1px;
+  color: var(--muted);
+}
+
+.spend-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  margin-top: 28.5px;
+}
+
+.spend-bar span {
+  flex-basis: 0;
+  border-radius: 4px;
+  transition: flex-grow 480ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spend-bar span,
+  .tab {
+    transition: none;
+  }
+}
+
+.legend {
+  margin-top: 18.6px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+}
+
+.legend li + li {
+  margin-top: 12.2px;
+}
+
+.legend-dot {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+}
+
+.legend-dot i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legend-label {
+  flex: 1;
+  color: var(--muted);
+}
+
+.legend-pct {
+  color: var(--muted);
+  margin-right: 10px;
+}
+
+.legend-value {
+  font-weight: 700;
+}
+
+/* Things to do */
+
+.view-all {
+  color: var(--muted);
+}
+
+.todo-list {
+  margin-top: 11.8px;
+}
+
+.todo-row {
+  position: relative;
+  /* own stacking context so the hover panel can sit behind the row's text */
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  padding: 22.5px 0 19.5px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.todo-row:last-child {
+  border-bottom: 0;
+}
+
+/* Hover: a flat band across the whole row, from just right of the column divider to the
+   card's right edge, covering the separators above and below it. */
+.todo {
+  --row-bleed-left: 30px; /* to the divider, which sits 31px left of the column */
+  --row-bleed-right: 24.75px; /* the card's right padding */
+}
+
+.todo-row::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  left: calc(-1 * var(--row-bleed-left));
+  right: calc(-1 * var(--row-bleed-right));
+  z-index: -1;
+  background: #f6f6f6;
+  opacity: 0;
+  transition: opacity 140ms ease;
+  pointer-events: none;
+}
+
+.todo-row:hover::before {
+  opacity: 1;
+}
+
+.alert-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #fdebe2;
+  flex: none;
+}
+
+.alert-dot i {
+  position: relative;
+  z-index: 1;
+  width: 8.5px;
+  height: 8.5px;
+  border-radius: 50%;
+  background: var(--brand);
+  animation: alert-blink 3.2s ease-in-out infinite;
+}
+
+/* Beacon: two rings, half a cycle apart, swell out of the halo and fade. */
+.alert-dot::before,
+.alert-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0;
+  pointer-events: none;
+  animation: alert-ping 3.2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+}
+
+.alert-dot::after {
+  animation-delay: 1.6s;
+}
+
+@keyframes alert-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.28;
+  }
+  70%,
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* The dot dips and flashes back each time a ring leaves. */
+@keyframes alert-blink {
+  0%,
+  50%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  14%,
+  64% {
+    transform: scale(0.9);
+    opacity: 0.78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-dot i,
+  .alert-dot::before,
+  .alert-dot::after {
+    animation: none;
+  }
+}
+
+.todo-title {
+  /* above the alert beacon's rings as they spread */
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
+}
+
+.todo-row .sep {
+  margin: 0 6px;
+}
+
+.todo-meta {
+  position: relative;
+  top: 0.4px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.todo-action {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 16px;
+  font-weight: 600;
+}
+
+.todo-action.is-alert {
+  color: var(--brand);
+}
+
+/* Row hover (or keyboard focus on the action) opens a 20px slot at the right edge of the row
+   (plus an 8px gap), so the label slides left and the arrow lands where the label used to end. */
+.todo-arrow {
+  display: inline-flex;
+  width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1), margin-left 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+.todo-arrow svg {
+  transform: translateX(-6px);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.todo-row:hover .todo-arrow,
+.todo-action:focus-visible .todo-arrow {
+  width: 20px;
+  margin-left: 8px;
+  opacity: 1;
+}
+
+.todo-row:hover .todo-arrow svg,
+.todo-action:focus-visible .todo-arrow svg {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .todo-arrow,
+  .todo-arrow svg {
+    transition: none;
+  }
+}
+
+/* At a glance */
+
+.glance {
+  margin-top: 40px;
+  padding: 24px 24.75px 22px 23px;
+}
+
+.glance-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 60px;
+  margin-top: 13.5px;
+}
+
+.glance-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  line-height: 24px;
+}
+
+.glance-col + .glance-col::before {
+  content: '';
+  position: absolute;
+  left: -30px;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: #eeeeee;
+}
+
+.glance-title {
+  display: flex;
+  align-items: center;
+  gap: var(--title-gap, 7px);
+  font-weight: 600;
+}
+
+.glance-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.glance-row b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.glance-row.is-alert,
+.glance-row.is-alert b {
+  color: var(--brand);
+}
+
+/* ───────────────────────── Collapsible sidebar ───────────────────────── */
+
+/*
+ * Collapsed, the sidebar becomes a 60px rail. Icons never move (they already sit on x = 30,
+ * the rail's centre); only the edge slides in while labels fade out quickly, and fade back in
+ * a beat later on the way out. The wordmark hands over to the plane mark in the same spot.
+ */
+.app.is-collapsed {
+  --sidebar-w: 60px;
+}
+
+.brand {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 64px;
+}
+
+.logo,
+.nav-label,
+.nav-item .badge,
+.nav-section-text,
+.profile-text,
+.collapse-btn {
+  transition: opacity 200ms ease 90ms;
+}
+
+.nav-label,
+.profile-text {
+  white-space: nowrap;
+}
+
+.collapse-btn {
+  position: absolute;
+  left: 172px;
+  top: 18px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  transition: opacity 200ms ease 90ms, background-color 120ms ease, color 120ms ease;
+}
+
+.collapse-btn:hover {
+  background: #ebebeb;
+  color: var(--ink);
+}
+
+/* « only shows while the pointer, or keyboard focus, is in the sidebar */
+.app:not(.is-collapsed) .collapse-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app:not(.is-collapsed) .sidebar:is(:hover, :focus-within) .collapse-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0ms;
+}
+
+/* the plane mark sits exactly over the wordmark's own circle, centred on the icon column */
+.brand-mark {
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, background-color 120ms ease;
+}
+
+.brand-mark img,
+.brand-mark-arrow {
+  grid-area: 1 / 1;
+  transition: opacity 140ms ease;
+}
+
+.brand-mark-arrow {
+  color: var(--ink);
+  opacity: 0;
+}
+
+.brand-mark:hover {
+  background: #ebebeb;
+}
+
+.brand-mark:hover img,
+.brand-mark:focus-visible img {
+  opacity: 0;
+}
+
+.brand-mark:hover .brand-mark-arrow,
+.brand-mark:focus-visible .brand-mark-arrow {
+  opacity: 1;
+}
+
+.collapse-btn:focus-visible,
+.brand-mark:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: 1px;
+}
+
+/* SUITE / COMPANY turn into a small dot on the icon column, in the icons' grey */
+.nav-section-dot {
+  position: absolute;
+  left: 20.5px; /* centred on x = 30 */
+  top: calc(50% - 1.5px);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 180ms ease, transform 220ms var(--rail-ease);
+}
+
+/* the Approvals count shrinks to a dot on the icon's corner */
+.nav-dot {
+  position: absolute;
+  left: 33px;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 1.5px var(--page);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 180ms ease, transform 220ms var(--rail-ease);
+  pointer-events: none;
+}
+
+.profile {
+  transition: left 320ms var(--rail-ease);
+}
+
+/* collapsed state */
+.app.is-collapsed .logo,
+.app.is-collapsed .nav-label,
+.app.is-collapsed .nav-item .badge,
+.app.is-collapsed .nav-section-text,
+.app.is-collapsed .profile-text,
+.app.is-collapsed .collapse-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0ms;
+  transition-duration: 110ms;
+}
+
+.app.is-collapsed .nav-chevron {
+  opacity: 0;
+}
+
+.app.is-collapsed .brand-mark {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 60ms;
+}
+
+.app.is-collapsed .nav-section-dot,
+.app.is-collapsed .nav-dot {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 80ms;
+}
+
+.app.is-collapsed .nav-sub {
+  grid-template-rows: 0fr;
+}
+
+/* 24px between the rows either side (the 2px item margin + 22px), dot centred in it */
+.app.is-collapsed .nav-section {
+  margin-top: 0;
+  height: 22px;
+}
+
+.app.is-collapsed .nav-section-dot {
+  top: calc(50% - 2.5px); /* -1px makes up for the 2px item margin above */
+}
+
+.app.is-collapsed .profile {
+  left: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app,
+  .profile {
+    transition: none;
+  }
+}
+
+/* ── Collapsed rail: name tooltip for items without sub-pages ── */
+
+.nav-tip {
+  position: fixed;
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+  animation: nav-tip-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* little pointer towards the icon */
+.nav-tip::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 1.5px;
+  background: inherit;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.nav-tip-count {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--brand);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+@keyframes nav-tip-in {
+  from {
+    transform: translate(-4px, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-tip {
+    animation: none;
+  }
+}
+
+/* ── Collapsed rail: section flyout ── */
+
+/* the rail icon whose pages are showing stays highlighted */
+.nav-parent[data-flyout] {
+  background: #eeeeee;
+  color: var(--ink);
+}
+
+.nav-flyout {
+  position: fixed;
+  z-index: 40;
+  width: 200px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 16px 36px -14px rgba(17, 24, 39, 0.2), 0 3px 10px rgba(17, 24, 39, 0.05);
+  transform-origin: left 26px;
+  /* transform-only entrance (an opacity fade can leave popovers faintly see-through) */
+  animation: nav-flyout-in 170ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes nav-flyout-in {
+  from {
+    transform: translateX(-6px) scale(0.97);
+  }
+}
+
+.nav-flyout-title {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.nav-flyout-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.nav-flyout-item:hover {
+  background: #f3f3f3;
+  color: var(--ink);
+}
+
+.nav-flyout-item.is-current {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.nav-flyout-item:focus-visible {
+  outline: 2px solid #2c6bfe;
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-flyout {
+    animation: none;
+  }
+}
+
+/* ───────────────────────── Continuous (squircle) corners ───────────────────────── */
+
+/*
+ * iOS-style continuous corners. A squircle at the same radius reads tighter than a circular
+ * arc, so radii are scaled by ~1.75 to keep each shape's visual size while smoothing how the
+ * curve meets the straight edges. Only rectangles get it: pills (search, badges, tabs, the
+ * Drilldown button, bar segments) stay fully round capsules, and true circles (avatar, bell,
+ * icon discs, dots) stay round. Browsers without corner-shape keep the circular radii above.
+ */
+@supports (corner-shape: squircle) {
+  .panel {
+    border-radius: 24.5px;
+    corner-shape: squircle;
+  }
+
+  /* Sidebar items (sections and sub-items alike): continuous corners that read like a 16px
+     round corner. A full squircle at 16px looks ~9px, so use the full 20px (half the 40px
+     height) with a gentler superellipse, which keeps the smooth iOS-style curve. */
+  .nav-item,
+  .nav-subitem,
+  .nav-flyout-item {
+    border-radius: 20px;
+    corner-shape: superellipse(1.5);
+  }
+
+  .nav-flyout {
+    border-radius: 26px;
+    corner-shape: superellipse(1.5);
+  }
+
+  .help-pop {
+    border-radius: 32px;
+    corner-shape: squircle;
+  }
+
+  .help-row {
+    border-radius: 24px;
+    corner-shape: squircle;
+  }
+
+
+  .search kbd {
+    border-radius: 7px;
+    corner-shape: squircle;
+  }
+
+  .card {
+    border-radius: 35px;
+    corner-shape: squircle;
+  }
+
+  .iris-panel {
+    border-radius: 0 49px 49px 0;
+    corner-shape: squircle;
+  }
+
+  .qa-card {
+    border-radius: 35px;
+    corner-shape: squircle;
+  }
+}
+
+/* ───────────────────────── Smaller screens ───────────────────────── */
+
+@media (max-width: 1360px) {
+  .quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 40px;
+  }
+  .todo::before {
+    display: none;
+  }
+  .todo {
+    --row-bleed-left: 23px; /* no divider here: run to the card's left padding edge */
+  }
+}
+
+@media (max-width: 860px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    display: none;
+  }
+  .topbar,
+  .panel {
+    grid-column: 1;
+  }
+  .panel {
+    margin-left: 8px;
+    padding: 0 20px;
+  }
+  .search {
+    width: min(260px, 60vw);
+  }
+  .quick-actions,
+  .glance-cols {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 16px;
+  }
+  .glance-col + .glance-col::before {
+    display: none;
+  }
+}
+
+/* ───────────────────────── Rolling numbers ───────────────────────── */
+
+/* While rolling, the real text stays in place but transparent (it fixes the kerned width and
+   is what screen readers read); characters and reels are drawn over it at measured spots. */
+.roll-host {
+  position: relative;
+  display: inline-block;
+}
+
+.roll-ghost {
+  color: transparent;
+}
+
+.roll-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.roll-char {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  text-align: center;
+  white-space: pre;
+}
+
+/* A digit's window: one line tall, as wide as its final glyph; the mask softens digits as
+   they enter and leave. */
+.roll-window {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
+}
+
+.roll-strip {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-50%);
+  will-change: transform;
+}
+
+.roll-strip > span {
+  display: block;
+  text-align: center;
+}
+
+/* digits flying past are a touch lighter than the one that lands */
+.roll-mid {
+  opacity: 0.5;
+}
+
+/* Phones: not enough room beside the centred search for the help text, so the bell stays alone. */
+@media (max-width: 600px) {
+  .help {
+    display: none;
+  }
+}
